@@ -11,10 +11,13 @@ update : Message msg -> Socket msg -> ( Socket msg, Cmd msg )
 update phoenixMessage socket =
     case phoenixMessage of
         Incoming SocketClosed ->
-            ( { socket | hasClosed = True }, maybeTriggerCommand socket.onClose )
+            ( { socket | hasClosed = True, isConnected = False }, maybeTriggerCommand socket.onClose )
 
         Incoming (SocketErrored payload) ->
-            ( { socket | hasErrored = True }, maybeTriggerCmdWithPayload socket.onError payload )
+            ( { socket | hasErrored = True, isConnected = False }, maybeTriggerCmdWithPayload socket.onError payload )
+
+        Incoming SocketOpened ->
+            ( { socket | isConnected = True }, maybeTriggerCommand socket.onOpen )
 
         _ ->
             ( socket, Cmd.none )

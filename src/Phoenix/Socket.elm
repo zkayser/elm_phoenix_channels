@@ -46,6 +46,7 @@ type alias Socket msg =
     , channels : Dict String (Channel msg)
     , hasClosed : Bool
     , hasErrored : Bool
+    , isConnected : Bool
     , onOpen : Maybe msg
     , onClose : Maybe msg
     , onError : Maybe (Payload -> msg)
@@ -65,6 +66,7 @@ init endpoint =
     , channels = Dict.empty
     , hasClosed = False
     , hasErrored = False
+    , isConnected = False
     , onOpen = Nothing
     , onClose = Nothing
     , onError = Nothing

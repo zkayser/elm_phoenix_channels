@@ -40,6 +40,17 @@ suite =
                             newSocket.hasErrored
                                 |> Expect.true "Expected the socket to have errored"
                     ]
+                , describe "SocketOpened"
+                    [ test "sets isConnected on the socket" <|
+                        \_ ->
+                            let
+                                ( newSocket, _ ) =
+                                    Socket.init "/socket"
+                                        |> Phoenix.update (Incoming SocketOpened)
+                            in
+                            newSocket.isConnected
+                                |> Expect.true "Expected socket to be connected"
+                    ]
                 ]
             ]
         ]
