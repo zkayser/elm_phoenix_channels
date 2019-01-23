@@ -1,0 +1,20 @@
+{
+    "type": "package",
+    "name": "zkayser/elm-phoenix-channels",
+    "summary": "Data types and functions for interacting with Phoenix channels in Elm 0.19",
+    "license": "BSD-3-Clause",
+    "version": "1.2.0",
+    "exposed-modules": [
+        "Phoenix",
+        "Phoenix.Socket",
+        "Phoenix.Channel",
+        "Phoenix.Push"
+    ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {
+        "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/json": "1.0.0 <= v < 2.0.0",
+        "elm-explorations/test": "1.2.0 <= v < 2.0.0"
+    },
+    "test-dependencies": {}
+}
