@@ -72,59 +72,47 @@ socket record passed in.
         |> Phoenix.createSocket
 
 -}
-createSocket : Socket msg -> ( Socket msg, PhoenixCommand msg )
+createSocket : Socket msg -> Message msg
 createSocket socket =
-    ( socket, CreateSocket socket )
+    Outgoing <| CreateSocket socket
 
 
-{-| Creates a PhoenixCommand that describes a request to disconnect a socket connection.
+{-| Creates a Message that describes a request to disconnect a socket connection.
 -}
-disconnect : Socket msg -> ( Socket msg, PhoenixCommand msg )
-disconnect socket =
-    ( socket, Disconnect )
+disconnect : Message msg
+disconnect =
+    Outgoing Disconnect
 
 
-{-| Creates a PhoenixCommand that describes a request to connect to a channel based on the
+{-| Creates a Message that describes a request to connect to a channel based on the
 channel record passed in.
 -}
-createChannel : Channel msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
-createChannel channel socket =
-    let
-        newSocket =
-            { socket | channels = Dict.insert channel.topic channel socket.channels }
-    in
-    ( newSocket, CreateChannel channel )
+createChannel : Channel msg -> Message msg
+createChannel channel =
+    Outgoing <| CreateChannel channel
 
 
-{-| Creates a PhoenixCommand that describes a request to leave the given channel.
+{-| Creates a Message that describes a request to leave the given channel.
 
     myModel.channel
         |> Phoenix.leaveChannel
 
 -}
-leaveChannel : Channel msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
-leaveChannel channel socket =
-    let
-        newSocket =
-            { socket | channels = Dict.remove channel.topic socket.channels }
-    in
-    ( newSocket, LeaveChannel channel )
+leaveChannel : Channel msg -> Message msg
+leaveChannel channel =
+    Outgoing <| LeaveChannel channel
 
 
-{-| Creates a PhoenixCommand that describes a request to push a message from the
+{-| Creates a Message that describes a request to push a message from the
 client to the server.
 
     Push.init "room:lobby" "my_event"
         |> Phoenix.createPush
 
 -}
-createPush : Push msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
-createPush push socket =
-    let
-        newSocket =
-            { socket | pushes = Dict.insert push.topic push socket.pushes }
-    in
-    ( newSocket, CreatePush push )
+createPush : Push msg -> Message msg
+createPush push =
+    Outgoing <| CreatePush push
 
 
 {-| Takes a user provided outgoing port function along with a PhoenixCommand and returns

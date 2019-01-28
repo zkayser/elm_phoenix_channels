@@ -1,12 +1,26 @@
-module Phoenix exposing (update)
+module Phoenix exposing (Model, update)
 
-import Dict
+import Dict exposing (Dict)
 import Json.Encode as Encode exposing (Value)
+import Phoenix.Channel exposing (Channel)
 import Phoenix.Message as Message exposing (Event(..), Message(..))
 import Phoenix.Payload exposing (Payload)
+import Phoenix.Push exposing (Push)
 import Phoenix.Socket as Socket exposing (Socket)
 import Task
 
+type alias Model msg =
+    { socket : Socket msg
+    , channels : Dict String (Channel msg)
+    , pushes : Dict String (Push msg)
+    }
+
+initialize : Socket msg -> Model msg
+initialize socket =
+    { socket = socket
+    , channels = Dict.empty
+    , pushes = Dict.empty
+    }
 
 update : Message msg -> Socket msg -> ( Socket msg, Cmd msg )
 update phoenixMessage socket =
@@ -32,15 +46,15 @@ update phoenixMessage socket =
             case Dict.get payload.topic socket.channels of
                 Just channel -> ( socket, maybeTriggerCommand channel.onJoinTimeout )
                 _ -> ( socket, Cmd.none )
-        Incoming (ChannelMessageReceived payload) -> 
+        Incoming (ChannelMessageReceived payload) ->
             case Dict.get payload.topic socket.channels of
                 Just channel -> ( socket, maybeTriggerCmdWithPayload (Dict.get payload.message channel.on) payload.payload )
                 _ -> ( socket, Cmd.none )
-        Incoming (ChannelLeft payload) -> 
+        Incoming (ChannelLeft payload) ->
             case Dict.get payload.topic socket.channels of
                 Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onLeave payload.payload )
                 _ -> ( socket, Cmd.none )
-        Incoming (ChannelLeaveError payload) -> 
+        Incoming (ChannelLeaveError payload) ->
             case Dict.get payload.topic socket.channels of
                 Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onLeaveError payload.payload )
                 _ -> ( socket, Cmd.none)

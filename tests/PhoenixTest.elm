@@ -7,7 +7,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Phoenix
 import Phoenix.Channel as Channel exposing (Channel)
-import Phoenix.Message exposing (Event(..), Message(..), PhoenixCommand(..))
+import Phoenix.Message exposing (Event(..), Message(..))
 import Phoenix.Push as Push
 import Phoenix.Socket as Socket
 import Test exposing (..)
@@ -86,38 +86,28 @@ suite =
                                 |> Expect.true "Expected socket to be connected"
                     ]
                 ]
-            , describe "Outgoing"
+            , describe "Outgoing" <|
+                let
+                    initSocket = Socket.init "/socket"
+                in
                 [ describe "createSocket"
                     [ test "returns the socket as is" <|
                         \_ ->
                             let
-                                ( socket, _ ) =
-                                    Phoenix.Message.createSocket (Socket.init "/socket")
+                                command =
+                                    Phoenix.Message.createSocket initSocket
+                                ( socket, _ ) = Phoenix.update command initSocket
                             in
-                            Expect.equal socket (Socket.init "/socket")
-                    , test "returns a CreateSocket PhoenixCommand" <|
-                        \_ ->
-                            let
-                                ( _, cmd ) =
-                                    Phoenix.Message.createSocket (Socket.init "/socket")
-                            in
-                            Expect.equal cmd (CreateSocket (Socket.init "/socket"))
+                            Expect.equal socket initSocket
                     ]
                 , describe "disconnect"
                     [ test "returns the socket as is" <|
                         \_ ->
                             let
-                                ( socket, _ ) =
-                                    Phoenix.Message.disconnect (Socket.init "/socket")
+                                cmd = Phoenix.Message.disconnect
+                                ( socket, _ ) = Phoenix.update cmd initSocket
                             in
-                            Expect.equal socket (Socket.init "/socket")
-                    , test "returns a Disconnect PhoenixCommand" <|
-                        \_ ->
-                            let
-                                ( _, cmd ) =
-                                    Phoenix.Message.disconnect (Socket.init "/socket")
-                            in
-                            Expect.equal cmd Disconnect
+                            Expect.equal socket initSocket
                     ]
                 , describe "createChannel"
                     [ test "puts the channel in the socket's channels dictionary" <|
@@ -126,48 +116,28 @@ suite =
                                 channel =
                                     Channel.init "room:lobby"
 
+                                cmd = Phoenix.Message.createChannel channel
+
                                 ( socket, _ ) =
-                                    Phoenix.Message.createChannel channel (Socket.init "/socket")
+                                    Phoenix.update cmd initSocket
                             in
                             Expect.equal (Dict.get "room:lobby" socket.channels) (Just channel)
-                    , test "returns a CreateChannel command with the passed in channel" <|
-                        \_ ->
-                            let
-                                channel =
-                                    Channel.init "room:lobby"
-
-                                ( _, cmd ) =
-                                    Phoenix.Message.createChannel channel (Socket.init "/socket")
-                            in
-                            Expect.equal cmd (CreateChannel channel)
                     ]
                 , describe "leaveChannel"
-                    [ test "removes the channel from the socket's channels dictionary" <|
+                    [ test "has no immediate effect on the socket" <|
                         \_ ->
                             let
-                                socket =
-                                    Socket.init "/socket"
-
                                 channel =
                                     Channel.init "room:lobby"
 
                                 socketWithChannel =
-                                    { socket | channels = Dict.insert channel.topic channel socket.channels }
+                                    { initSocket | channels = Dict.insert channel.topic channel initSocket.channels }
 
-                                ( updatedSocket, _ ) =
-                                    Phoenix.Message.leaveChannel channel socket
+                                cmd =
+                                    Phoenix.Message.leaveChannel channel
+                                ( socket, _ ) = Phoenix.update cmd socketWithChannel
                             in
-                            Expect.equal (Dict.get channel.topic updatedSocket.channels) Nothing
-                    , test "returns a LeaveChannel message with the passed in channel" <|
-                        \_ ->
-                            let
-                                channel =
-                                    Channel.init "room:lobby"
-
-                                ( _, cmd ) =
-                                    Phoenix.Message.leaveChannel channel (Socket.init "/socket")
-                            in
-                            Expect.equal cmd (LeaveChannel channel)
+                            Expect.equal socket initSocket
                     ]
                 , describe "createPush"
                     [ test "adds a push to the socket's pushes dictionary" <|
@@ -176,20 +146,13 @@ suite =
                                 push =
                                     Push.init "room:lobby" "my_event"
 
+                                cmd =
+                                    Phoenix.Message.createPush push
+
                                 ( socket, _ ) =
-                                    Phoenix.Message.createPush push (Socket.init "/socket")
+                                    Phoenix.update cmd initSocket
                             in
                             Expect.equal (Dict.get push.topic socket.pushes) (Just push)
-                    , test "returns a CreatePush command with the passed in push" <|
-                        \_ ->
-                            let
-                                push =
-                                    Push.init "room:lobby" "my_event"
-
-                                ( _, cmd ) =
-                                    Phoenix.Message.createPush push (Socket.init "/socket")
-                            in
-                            Expect.equal cmd (CreatePush push)
                     ]
                 ]
             ]
