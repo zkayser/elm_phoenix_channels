@@ -22,6 +22,7 @@ suite =
                 let
                     initSocket =
                         Socket.init "/socket"
+
                     initModel =
                         Phoenix.initialize initSocket fakeSend
                 in
@@ -38,8 +39,7 @@ suite =
                         \_ ->
                             let
                                 connectedModel =
-                                   { initModel | socket = { initSocket | isConnected = True } }
-
+                                    { initModel | socket = { initSocket | isConnected = True } }
 
                                 ( model, _ ) =
                                     Phoenix.update (Incoming SocketClosed) connectedModel
@@ -67,7 +67,7 @@ suite =
                                     { topic = "", message = "", payload = Encode.object [] }
 
                                 connectedModel =
-                                   { initModel | socket = { initSocket | isConnected = True } }
+                                    { initModel | socket = { initSocket | isConnected = True } }
 
                                 ( model, _ ) =
                                     Phoenix.update (Incoming <| SocketErrored payload) connectedModel
@@ -80,7 +80,7 @@ suite =
                         \_ ->
                             let
                                 ( model, _ ) =
-                                        Phoenix.update (Incoming SocketOpened) initModel
+                                    Phoenix.update (Incoming SocketOpened) initModel
                             in
                             model.socket.isConnected
                                 |> Expect.true "Expected socket to be connected"
@@ -90,6 +90,7 @@ suite =
                 let
                     initSocket =
                         Socket.init "/socket"
+
                     initModel =
                         Phoenix.initialize initSocket fakeSend
                 in

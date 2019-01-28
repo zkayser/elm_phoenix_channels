@@ -35,10 +35,10 @@ update phoenixMessage model =
     in
     case phoenixMessage of
         Incoming SocketClosed ->
-            ( model, maybeTriggerCommand socket.onClose )
+            ( { model | socket = Socket.close socket }, maybeTriggerCommand socket.onClose )
 
         Incoming (SocketErrored payload) ->
-            ( model, maybeTriggerCmdWithPayload socket.onError payload.payload )
+            ( { model | socket = Socket.errored socket }, maybeTriggerCmdWithPayload socket.onError payload.payload )
 
         Incoming SocketOpened ->
             ( model, maybeTriggerCommand socket.onOpen )

@@ -3,6 +3,7 @@ module Phoenix.Socket exposing
     , onClose, onError, onOpen
     , close
     , encode
+    , errored
     , withDebug
     , withParams
     )
@@ -83,6 +84,12 @@ init endpoint =
 close : Socket msg -> Socket msg
 close socket =
     { socket | hasClosed = True, isConnected = False }
+
+{-| Puts the socket in an errored state.
+-}
+errored : Socket msg -> Socket msg
+errored socket =
+    { socket | hasErrored = True, isConnected = False }
 
 
 {-| Configures the socket to log out all incoming Phoenix messages to the console.
