@@ -1,5 +1,5 @@
 module Phoenix.Message exposing
-    ( Message(..)
+    ( Message(..), Data
     , createSocket, createChannel, createPush, disconnect, leaveChannel
     , Event(..), PhoenixCommand(..)
     )

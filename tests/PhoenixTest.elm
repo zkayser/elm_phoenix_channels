@@ -10,6 +10,7 @@ import Phoenix.Channel as Channel exposing (Channel)
 import Phoenix.Message exposing (Event(..), Message(..))
 import Phoenix.Push as Push
 import Phoenix.Socket as Socket
+import Task
 import Test exposing (..)
 
 
@@ -17,30 +18,33 @@ suite : Test
 suite =
     describe "Phoenix"
         [ describe "update"
-            [ describe "Incoming"
+            [ describe "Incoming" <|
+                let
+                    initSocket =
+                        Socket.init "/socket"
+                    initModel =
+                        Phoenix.initialize initSocket fakeSend
+                in
                 [ describe "SocketClosed"
                     [ test "sets socket state to closed" <|
                         \_ ->
                             let
-                                ( newSocket, _ ) =
-                                    Socket.init "/socket"
-                                        |> Phoenix.update (Incoming SocketClosed)
+                                ( newModel, _ ) =
+                                    Phoenix.update (Incoming SocketClosed) initModel
                             in
-                            newSocket.hasClosed
+                            newModel.socket.hasClosed
                                 |> Expect.true "Expected the socket to be closed"
                     , test "sets socket isConnected to false" <|
                         \_ ->
                             let
-                                socket =
-                                    Socket.init "/socket"
+                                connectedModel =
+                                   { initModel | socket = { initSocket | isConnected = True } }
 
-                                connectedSocket =
-                                    { socket | isConnected = True }
 
-                                ( newSocket, _ ) =
-                                    Phoenix.update (Incoming SocketClosed) connectedSocket
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming SocketClosed) connectedModel
                             in
-                            newSocket.isConnected
+                            model.socket.isConnected
                                 |> Expect.false "Expected the socket not to be connected"
                     ]
                 , describe "SocketErrored"
@@ -50,11 +54,11 @@ suite =
                                 payload =
                                     { topic = "", message = "", payload = Encode.object [] }
 
-                                ( newSocket, _ ) =
-                                    Socket.init "/socket"
+                                ( model, _ ) =
+                                    initModel
                                         |> Phoenix.update (Incoming <| SocketErrored payload)
                             in
-                            newSocket.hasErrored
+                            model.socket.hasErrored
                                 |> Expect.true "Expected the socket to have errored"
                     , test "sets socket isConnected to false" <|
                         \_ ->
@@ -62,33 +66,32 @@ suite =
                                 payload =
                                     { topic = "", message = "", payload = Encode.object [] }
 
-                                socket =
-                                    Socket.init "/socket"
+                                connectedModel =
+                                   { initModel | socket = { initSocket | isConnected = True } }
 
-                                connectedSocket =
-                                    { socket | isConnected = True }
-
-                                ( newSocket, _ ) =
-                                    Phoenix.update (Incoming <| SocketErrored payload) connectedSocket
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming <| SocketErrored payload) connectedModel
                             in
-                            newSocket.isConnected
+                            model.socket.isConnected
                                 |> Expect.false "Expected the socket not to be connected"
                     ]
                 , describe "SocketOpened"
                     [ test "sets isConnected on the socket" <|
                         \_ ->
                             let
-                                ( newSocket, _ ) =
-                                    Socket.init "/socket"
-                                        |> Phoenix.update (Incoming SocketOpened)
+                                ( model, _ ) =
+                                        Phoenix.update (Incoming SocketOpened) initModel
                             in
-                            newSocket.isConnected
+                            model.socket.isConnected
                                 |> Expect.true "Expected socket to be connected"
                     ]
                 ]
             , describe "Outgoing" <|
                 let
-                    initSocket = Socket.init "/socket"
+                    initSocket =
+                        Socket.init "/socket"
+                    initModel =
+                        Phoenix.initialize initSocket fakeSend
                 in
                 [ describe "createSocket"
                     [ test "returns the socket as is" <|
@@ -96,18 +99,23 @@ suite =
                             let
                                 command =
                                     Phoenix.Message.createSocket initSocket
-                                ( socket, _ ) = Phoenix.update command initSocket
+
+                                ( model, _ ) =
+                                    Phoenix.update command initModel
                             in
-                            Expect.equal socket initSocket
+                            Expect.equal model.socket initSocket
                     ]
                 , describe "disconnect"
                     [ test "returns the socket as is" <|
                         \_ ->
                             let
-                                cmd = Phoenix.Message.disconnect
-                                ( socket, _ ) = Phoenix.update cmd initSocket
+                                cmd =
+                                    Phoenix.Message.disconnect
+
+                                ( model, _ ) =
+                                    Phoenix.update cmd initModel
                             in
-                            Expect.equal socket initSocket
+                            Expect.equal model initModel
                     ]
                 , describe "createChannel"
                     [ test "puts the channel in the socket's channels dictionary" <|
@@ -116,12 +124,13 @@ suite =
                                 channel =
                                     Channel.init "room:lobby"
 
-                                cmd = Phoenix.Message.createChannel channel
+                                cmd =
+                                    Phoenix.Message.createChannel channel
 
-                                ( socket, _ ) =
-                                    Phoenix.update cmd initSocket
+                                ( model, _ ) =
+                                    Phoenix.update cmd initModel
                             in
-                            Expect.equal (Dict.get "room:lobby" socket.channels) (Just channel)
+                            Expect.equal (Dict.get "room:lobby" model.channels) (Just channel)
                     ]
                 , describe "leaveChannel"
                     [ test "has no immediate effect on the socket" <|
@@ -130,14 +139,16 @@ suite =
                                 channel =
                                     Channel.init "room:lobby"
 
-                                socketWithChannel =
-                                    { initSocket | channels = Dict.insert channel.topic channel initSocket.channels }
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert channel.topic channel initSocket.channels }
 
                                 cmd =
                                     Phoenix.Message.leaveChannel channel
-                                ( socket, _ ) = Phoenix.update cmd socketWithChannel
+
+                                ( model, _ ) =
+                                    Phoenix.update cmd modelWithChannel
                             in
-                            Expect.equal socket initSocket
+                            Expect.equal model modelWithChannel
                     ]
                 , describe "createPush"
                     [ test "adds a push to the socket's pushes dictionary" <|
@@ -149,11 +160,20 @@ suite =
                                 cmd =
                                     Phoenix.Message.createPush push
 
-                                ( socket, _ ) =
-                                    Phoenix.update cmd initSocket
+                                ( model, _ ) =
+                                    Phoenix.update cmd initModel
                             in
-                            Expect.equal (Dict.get push.topic socket.pushes) (Just push)
+                            Expect.equal (Dict.get push.topic model.pushes) (Just push)
                     ]
                 ]
             ]
         ]
+
+
+type Msg
+    = FakeSendMsg Phoenix.Message.Data
+
+
+fakeSend : Phoenix.Message.Data -> Cmd Msg
+fakeSend =
+    Task.perform identity << Task.succeed << FakeSendMsg

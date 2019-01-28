@@ -1,6 +1,7 @@
 module Phoenix.Socket exposing
     ( Socket, init
     , onClose, onError, onOpen
+    , close
     , encode
     , withDebug
     , withParams
@@ -76,6 +77,12 @@ init endpoint =
     , pushes = Dict.empty
     , debug = False
     }
+
+{-| Puts the socket in a closed state.
+-}
+close : Socket msg -> Socket msg
+close socket =
+    { socket | hasClosed = True, isConnected = False }
 
 
 {-| Configures the socket to log out all incoming Phoenix messages to the console.
