@@ -157,6 +157,16 @@ suite =
                                     Phoenix.Message.leaveChannel channel socket
                             in
                             Expect.equal (Dict.get channel.topic updatedSocket.channels) Nothing
+                    , test "returns a LeaveChannel message with the passed in channel" <|
+                        \_ ->
+                            let
+                                channel =
+                                    Channel.init "room:lobby"
+
+                                ( _, cmd ) =
+                                    Phoenix.Message.leaveChannel channel (Socket.init "/socket")
+                            in
+                            Expect.equal cmd (LeaveChannel channel)
                     ]
                 ]
             ]
