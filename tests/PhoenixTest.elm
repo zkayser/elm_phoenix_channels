@@ -8,6 +8,7 @@ import Json.Encode as Encode
 import Phoenix
 import Phoenix.Channel as Channel exposing (Channel)
 import Phoenix.Message exposing (Event(..), Message(..), PhoenixCommand(..))
+import Phoenix.Push as Push
 import Phoenix.Socket as Socket
 import Test exposing (..)
 
@@ -167,6 +168,18 @@ suite =
                                     Phoenix.Message.leaveChannel channel (Socket.init "/socket")
                             in
                             Expect.equal cmd (LeaveChannel channel)
+                    ]
+                , describe "createPush"
+                    [ test "it adds a push to the socket's pushes dictionary" <|
+                        \_ ->
+                            let
+                                push =
+                                    Push.init "room:lobby" "my_event"
+
+                                ( socket, _ ) =
+                                    Phoenix.Message.createPush push (Socket.init "/socket")
+                            in
+                            Expect.equal (Dict.get push.topic socket.pushes) (Just push)
                     ]
                 ]
             ]

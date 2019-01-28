@@ -37,6 +37,7 @@ import Json.Decode exposing (Value)
 import Json.Encode as Encode
 import Phoenix.Channel as Channel exposing (Channel)
 import Phoenix.Payload exposing (Payload)
+import Phoenix.Push exposing (Push)
 
 
 {-| Represents a socket for connecting to Phoenix channels.
@@ -51,6 +52,7 @@ type alias Socket msg =
     , onClose : Maybe msg
     , onError : Maybe (Payload -> msg)
     , params : Maybe Value
+    , pushes : Dict String (Push msg)
     , debug : Bool
     }
 
@@ -71,6 +73,7 @@ init endpoint =
     , onClose = Nothing
     , onError = Nothing
     , params = Nothing
+    , pushes = Dict.empty
     , debug = False
     }
 

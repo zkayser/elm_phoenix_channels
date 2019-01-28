@@ -118,9 +118,13 @@ client to the server.
         |> Phoenix.createPush
 
 -}
-createPush : Push msg -> PhoenixCommand msg
-createPush push =
-    CreatePush push
+createPush : Push msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
+createPush push socket =
+    let
+        newSocket =
+            { socket | pushes = Dict.insert push.topic push socket.pushes }
+    in
+    ( newSocket, CreatePush push )
 
 
 {-| Takes a user provided outgoing port function along with a PhoenixCommand and returns
