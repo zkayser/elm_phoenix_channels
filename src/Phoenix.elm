@@ -1,5 +1,6 @@
 module Phoenix exposing (update)
 
+import Dict
 import Json.Encode as Encode exposing (Value)
 import Phoenix.Message as Message exposing (Event(..), Message(..))
 import Phoenix.Payload exposing (Payload)
@@ -14,14 +15,43 @@ update phoenixMessage socket =
             ( { socket | hasClosed = True, isConnected = False }, maybeTriggerCommand socket.onClose )
 
         Incoming (SocketErrored payload) ->
-            ( { socket | hasErrored = True, isConnected = False }, maybeTriggerCmdWithPayload socket.onError payload )
+            ( { socket | hasErrored = True, isConnected = False }, maybeTriggerCmdWithPayload socket.onError payload.payload )
 
         Incoming SocketOpened ->
             ( { socket | isConnected = True }, maybeTriggerCommand socket.onOpen )
 
         Incoming (ChannelJoined payload) ->
-            ( socket, Cmd.none )
-
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onJoin payload.payload )
+                _ -> ( socket, Cmd.none )
+        Incoming (ChannelJoinError payload) ->
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onJoinError payload.payload )
+                _ -> ( socket, Cmd.none )
+        Incoming (ChannelJoinTimeout payload) ->
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCommand channel.onJoinTimeout )
+                _ -> ( socket, Cmd.none )
+        Incoming (ChannelMessageReceived payload) -> 
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCmdWithPayload (Dict.get payload.message channel.on) payload.payload )
+                _ -> ( socket, Cmd.none )
+        Incoming (ChannelLeft payload) -> 
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onLeave payload.payload )
+                _ -> ( socket, Cmd.none )
+        Incoming (ChannelLeaveError payload) -> 
+            case Dict.get payload.topic socket.channels of
+                Just channel -> ( socket, maybeTriggerCmdWithPayload channel.onLeaveError payload.payload )
+                _ -> ( socket, Cmd.none)
+        Incoming (PushOk payload) ->
+            case Dict.get payload.topic socket.pushes of
+                Just push -> ( socket, maybeTriggerCmdWithPayload push.onOk payload.payload )
+                _ -> ( socket, Cmd.none )
+        Incoming (PushError payload) ->
+            case Dict.get payload.topic socket.pushes of
+                Just push -> ( socket, maybeTriggerCmdWithPayload push.onError payload.payload )
+                _ -> ( socket, Cmd.none )
         _ ->
             ( socket, Cmd.none )
 
@@ -36,7 +66,7 @@ maybeTriggerCommand maybeCallback =
             Cmd.none
 
 
-maybeTriggerCmdWithPayload : Maybe (Payload -> msg) -> (Payload -> Cmd msg)
+maybeTriggerCmdWithPayload : Maybe (Value -> msg) -> (Value -> Cmd msg)
 maybeTriggerCmdWithPayload maybeCallback =
     case maybeCallback of
         Just fn ->

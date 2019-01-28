@@ -50,7 +50,7 @@ type alias Socket msg =
     , isConnected : Bool
     , onOpen : Maybe msg
     , onClose : Maybe msg
-    , onError : Maybe (Payload -> msg)
+    , onError : Maybe (Value -> msg)
     , params : Maybe Value
     , pushes : Dict String (Push msg)
     , debug : Bool
@@ -119,7 +119,7 @@ onClose onCloseFn socket =
     |> Socket.onError SocketErrored
 
 -}
-onError : (Payload -> msg) -> Socket msg -> Socket msg
+onError : (Value -> msg) -> Socket msg -> Socket msg
 onError onErrorFn socket =
     { socket | onError = Just onErrorFn }
 
