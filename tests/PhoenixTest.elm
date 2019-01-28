@@ -17,7 +17,33 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "Phoenix"
-        [ describe "update"
+        [ describe "addChannel"
+            [ test "places a channel in the model's channels field" <|
+                \_ ->
+                    let
+                        model =
+                            Phoenix.initialize (Socket.init "/socket") fakeSend
+                        channel =
+                            Channel.init "room:lobby"
+                        newModel =
+                            Phoenix.addChannel channel model
+                    in
+                    Expect.equal (Dict.get channel.topic newModel.channels) (Just channel)
+            ]
+        , describe "addPush"
+            [ test "places a push in the model's pushes field" <|
+                \_ ->
+                    let
+                        model =
+                            Phoenix.initialize (Socket.init "/socket") fakeSend
+                        push =
+                            Push.init "room:lobby" "my_event"
+                        newModel =
+                            Phoenix.addPush push model
+                    in
+                    Expect.equal (Dict.get push.topic newModel.pushes) (Just push)
+            ]
+        , describe "update"
             [ describe "Incoming" <|
                 let
                     initSocket =

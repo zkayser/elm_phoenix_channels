@@ -1,11 +1,9 @@
 module Phoenix.Socket exposing
     ( Socket, init
     , onClose, onError, onOpen
-    , close
     , encode
-    , errored
     , withDebug
-    , withParams
+    , close, errored, opened, withParams
     )
 
 {-| Represents a socket for connecting to Phoenix channels. This modules exposes a Socket type and functions for
@@ -79,17 +77,26 @@ init endpoint =
     , debug = False
     }
 
+
 {-| Puts the socket in a closed state.
 -}
 close : Socket msg -> Socket msg
 close socket =
     { socket | hasClosed = True, isConnected = False }
 
+
 {-| Puts the socket in an errored state.
 -}
 errored : Socket msg -> Socket msg
 errored socket =
     { socket | hasErrored = True, isConnected = False }
+
+
+{-| Puts the socket in a connected state.
+-}
+opened : Socket msg -> Socket msg
+opened socket =
+    { socket | isConnected = True }
 
 
 {-| Configures the socket to log out all incoming Phoenix messages to the console.

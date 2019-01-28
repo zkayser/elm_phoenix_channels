@@ -1,4 +1,4 @@
-module Phoenix exposing (Model, update, initialize)
+module Phoenix exposing (Model, initialize, update, addChannel, addPush)
 
 import Dict exposing (Dict)
 import Json.Encode as Encode exposing (Value)
@@ -26,6 +26,14 @@ initialize socket sendFn =
     , send = sendFn
     }
 
+addChannel : Channel msg -> Model msg -> Model msg
+addChannel channel model =
+    { model | channels = Dict.insert channel.topic channel model.channels }
+
+addPush : Push msg -> Model msg -> Model msg
+addPush push model =
+    { model | pushes = Dict.insert push.topic push model.pushes }
+
 
 update : Message msg -> Model msg -> ( Model msg, Cmd msg )
 update phoenixMessage model =
@@ -41,7 +49,7 @@ update phoenixMessage model =
             ( { model | socket = Socket.errored socket }, maybeTriggerCmdWithPayload socket.onError payload.payload )
 
         Incoming SocketOpened ->
-            ( model, maybeTriggerCommand socket.onOpen )
+            ( { model | socket = Socket.opened socket }, maybeTriggerCommand socket.onOpen )
 
         Incoming (ChannelJoined payload) ->
             case Dict.get payload.topic model.channels of
