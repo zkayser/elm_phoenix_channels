@@ -170,7 +170,7 @@ suite =
                             Expect.equal cmd (LeaveChannel channel)
                     ]
                 , describe "createPush"
-                    [ test "it adds a push to the socket's pushes dictionary" <|
+                    [ test "adds a push to the socket's pushes dictionary" <|
                         \_ ->
                             let
                                 push =
@@ -180,6 +180,16 @@ suite =
                                     Phoenix.Message.createPush push (Socket.init "/socket")
                             in
                             Expect.equal (Dict.get push.topic socket.pushes) (Just push)
+                    , test "returns a CreatePush command with the passed in push" <|
+                        \_ ->
+                            let
+                                push =
+                                    Push.init "room:lobby" "my_event"
+
+                                ( _, cmd ) =
+                                    Phoenix.Message.createPush push (Socket.init "/socket")
+                            in
+                            Expect.equal cmd (CreatePush push)
                     ]
                 ]
             ]
