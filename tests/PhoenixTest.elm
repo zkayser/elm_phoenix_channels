@@ -140,6 +140,24 @@ suite =
                             in
                             Expect.equal cmd (CreateChannel channel)
                     ]
+                , describe "leaveChannel"
+                    [ test "removes the channel from the socket's channels dictionary" <|
+                        \_ ->
+                            let
+                                socket =
+                                    Socket.init "/socket"
+
+                                channel =
+                                    Channel.init "room:lobby"
+
+                                socketWithChannel =
+                                    { socket | channels = Dict.insert channel.topic channel socket.channels }
+
+                                ( updatedSocket, _ ) =
+                                    Phoenix.Message.leaveChannel channel socket
+                            in
+                            Expect.equal (Dict.get channel.topic updatedSocket.channels) Nothing
+                    ]
                 ]
             ]
         ]

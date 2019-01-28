@@ -1,6 +1,6 @@
 module Phoenix.Message exposing
     ( Message(..)
-    , createSocket, createChannel, createPush, disconnect
+    , createSocket, createChannel, createPush, disconnect, leaveChannel
     , Event(..), PhoenixCommand(..)
     )
 
@@ -102,9 +102,13 @@ createChannel channel socket =
         |> Phoenix.leaveChannel
 
 -}
-leaveChannel : Channel msg -> PhoenixCommand msg
-leaveChannel channel =
-    LeaveChannel channel
+leaveChannel : Channel msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
+leaveChannel channel socket =
+    let
+        newSocket =
+            { socket | channels = Dict.remove channel.topic socket.channels }
+    in
+    ( newSocket, LeaveChannel channel )
 
 
 {-| Creates a PhoenixCommand that describes a request to push a message from the
