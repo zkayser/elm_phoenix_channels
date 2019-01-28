@@ -19,6 +19,9 @@ update phoenixMessage socket =
         Incoming SocketOpened ->
             ( { socket | isConnected = True }, maybeTriggerCommand socket.onOpen )
 
+        Incoming (ChannelJoined payload) ->
+            ( socket, Cmd.none )
+
         _ ->
             ( socket, Cmd.none )
 

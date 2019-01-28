@@ -1,7 +1,7 @@
 module Phoenix.Message exposing
     ( Message(..)
-    , createSocket, createChannel, createPush
-    , Event(..), PhoenixCommand
+    , createSocket, createChannel, createPush, disconnect
+    , Event(..), PhoenixCommand(..)
     )
 
 {-| Phoenix.Message defines a set of messages that can be passed between external Phoenix socket/channel data sources and Elm.
@@ -25,6 +25,7 @@ module Phoenix.Message exposing
 
 -- TODO: Remove this file and move everything to the base Phoenix module
 
+import Dict
 import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value)
 import Phoenix.Channel as Channel exposing (Channel)
@@ -71,24 +72,28 @@ socket record passed in.
         |> Phoenix.createSocket
 
 -}
-createSocket : Socket msg -> PhoenixCommand msg
+createSocket : Socket msg -> ( Socket msg, PhoenixCommand msg )
 createSocket socket =
-    CreateSocket socket
+    ( socket, CreateSocket socket )
 
 
 {-| Creates a PhoenixCommand that describes a request to disconnect a socket connection.
 -}
-disconnect : PhoenixCommand msg
-disconnect =
-    Disconnect
+disconnect : Socket msg -> ( Socket msg, PhoenixCommand msg )
+disconnect socket =
+    ( socket, Disconnect )
 
 
 {-| Creates a PhoenixCommand that describes a request to connect to a channel based on the
 channel record passed in.
 -}
-createChannel : Channel msg -> PhoenixCommand msg
-createChannel channel =
-    CreateChannel channel
+createChannel : Channel msg -> Socket msg -> ( Socket msg, PhoenixCommand msg )
+createChannel channel socket =
+    let
+        newSocket =
+            { socket | channels = Dict.insert channel.topic channel socket.channels }
+    in
+    ( newSocket, CreateChannel channel )
 
 
 {-| Creates a PhoenixCommand that describes a request to leave the given channel.
