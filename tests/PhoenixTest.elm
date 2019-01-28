@@ -129,6 +129,16 @@ suite =
                                     Phoenix.Message.createChannel channel (Socket.init "/socket")
                             in
                             Expect.equal (Dict.get "room:lobby" socket.channels) (Just channel)
+                    , test "returns a CreateChannel command with the passed in channel" <|
+                        \_ ->
+                            let
+                                channel =
+                                    Channel.init "room:lobby"
+
+                                ( _, cmd ) =
+                                    Phoenix.Message.createChannel channel (Socket.init "/socket")
+                            in
+                            Expect.equal cmd (CreateChannel channel)
                     ]
                 ]
             ]
