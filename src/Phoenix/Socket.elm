@@ -36,6 +36,7 @@ import Dict exposing (Dict)
 import Json.Decode exposing (Value)
 import Json.Encode as Encode
 import Phoenix.Channel as Channel exposing (Channel)
+import Phoenix.Internal.EntityState exposing (EntityState(..))
 import Phoenix.Payload exposing (Payload)
 import Phoenix.Push exposing (Push)
 
@@ -45,15 +46,13 @@ import Phoenix.Push exposing (Push)
 type alias Socket msg =
     { endpoint : String
     , channels : Dict String (Channel msg)
-    , hasClosed : Bool
-    , hasErrored : Bool
-    , isConnected : Bool
     , onOpen : Maybe msg
     , onClose : Maybe msg
     , onError : Maybe (Value -> msg)
     , params : Maybe Value
     , pushes : Dict String (Push msg)
     , debug : Bool
+    , state : EntityState
     }
 
 
@@ -66,15 +65,13 @@ init : String -> Socket msg
 init endpoint =
     { endpoint = endpoint
     , channels = Dict.empty
-    , hasClosed = False
-    , hasErrored = False
-    , isConnected = False
     , onOpen = Nothing
     , onClose = Nothing
     , onError = Nothing
     , params = Nothing
     , pushes = Dict.empty
     , debug = False
+    , state = Initializing
     }
 
 
@@ -82,21 +79,21 @@ init endpoint =
 -}
 close : Socket msg -> Socket msg
 close socket =
-    { socket | hasClosed = True, isConnected = False }
+    { socket | state = Closed }
 
 
 {-| Puts the socket in an errored state.
 -}
 errored : Socket msg -> Socket msg
 errored socket =
-    { socket | hasErrored = True, isConnected = False }
+    { socket | state = Errored }
 
 
 {-| Puts the socket in a connected state.
 -}
 opened : Socket msg -> Socket msg
 opened socket =
-    { socket | isConnected = True }
+    { socket | state = Connected }
 
 
 {-| Configures the socket to log out all incoming Phoenix messages to the console.

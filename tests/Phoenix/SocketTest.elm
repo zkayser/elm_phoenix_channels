@@ -1,6 +1,7 @@
 module SocketTest exposing (suite)
 
 import Expect
+import Phoenix.Internal.EntityState exposing (EntityState(..))
 import Phoenix.Socket as Socket exposing (Socket)
 import Test exposing (..)
 
@@ -12,42 +13,36 @@ suite =
             socket =
                 Socket.init "/socket"
         in
-        [ describe "close"
-            [ test "sets hasClosed and isConnected fields" <|
+        [ describe "init"
+            [ test "state starts out as Initializing" <|
+                \_ ->
+                    Expect.equal socket.state Initializing
+            ]
+        , describe "close"
+            [ test "sets state to Closed" <|
                 \_ ->
                     let
                         updatedSocket =
                             Socket.close socket
                     in
-                    Expect.all
-                        [ \s -> Expect.true "Expected socket to be closed" s.hasClosed
-                        , \s -> Expect.false "Expected socket not to be connected" s.isConnected
-                        ]
-                        updatedSocket
+                    Expect.equal updatedSocket.state Closed
             ]
         , describe "errored"
-            [ test "sets hasErrored and isConnected fields" <|
+            [ test "sets state to Errored" <|
                 \_ ->
                     let
                         updatedSocket =
                             Socket.errored socket
                     in
-                    Expect.all
-                        [ \s -> Expect.true "Expected socket to have errored" s.hasErrored
-                        , \s -> Expect.false "Expected socket not to be connected" s.isConnected
-                        ]
-                        updatedSocket
+                    Expect.equal updatedSocket.state Errored
             ]
         , describe "opened"
-            [ test "sets isConnected field" <|
+            [ test "sets state to Connected" <|
                 \_ ->
                     let
-                        notConnected =
-                            { socket | isConnected = False }
-
                         updatedSocket =
-                            Socket.opened notConnected
+                            Socket.opened socket
                     in
-                    Expect.true "Expected socket to be connected" updatedSocket.isConnected
+                    Expect.equal updatedSocket.state Connected
             ]
         ]

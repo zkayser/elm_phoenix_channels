@@ -7,6 +7,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Phoenix
 import Phoenix.Channel as Channel exposing (Channel)
+import Phoenix.Internal.EntityState exposing (EntityState(..))
 import Phoenix.Message exposing (Event(..), Message(..))
 import Phoenix.Push as Push
 import Phoenix.Socket as Socket
@@ -63,22 +64,11 @@ suite =
                                 ( newModel, _ ) =
                                     Phoenix.update (Incoming SocketClosed) initModel
                             in
-                            newModel.socket.hasClosed
-                                |> Expect.true "Expected the socket to be closed"
-                    , test "sets socket isConnected to false" <|
-                        \_ ->
-                            let
-                                connectedModel =
-                                    { initModel | socket = { initSocket | isConnected = True } }
-
-                                ( model, _ ) =
-                                    Phoenix.update (Incoming SocketClosed) connectedModel
-                            in
-                            model.socket.isConnected
-                                |> Expect.false "Expected the socket not to be connected"
+                            newModel.socket.state
+                                |> Expect.equal Closed
                     ]
                 , describe "SocketErrored"
-                    [ test "sets socket hasErrored" <|
+                    [ test "sets socket state to errored" <|
                         \_ ->
                             let
                                 payload =
@@ -88,32 +78,18 @@ suite =
                                     initModel
                                         |> Phoenix.update (Incoming <| SocketErrored payload)
                             in
-                            model.socket.hasErrored
-                                |> Expect.true "Expected the socket to have errored"
-                    , test "sets socket isConnected to false" <|
-                        \_ ->
-                            let
-                                payload =
-                                    { topic = "", message = "", payload = Encode.object [] }
-
-                                connectedModel =
-                                    { initModel | socket = { initSocket | isConnected = True } }
-
-                                ( model, _ ) =
-                                    Phoenix.update (Incoming <| SocketErrored payload) connectedModel
-                            in
-                            model.socket.isConnected
-                                |> Expect.false "Expected the socket not to be connected"
+                            model.socket.state
+                                |> Expect.equal Errored
                     ]
                 , describe "SocketOpened"
-                    [ test "sets isConnected on the socket" <|
+                    [ test "sets socket state to connected" <|
                         \_ ->
                             let
                                 ( model, _ ) =
                                     Phoenix.update (Incoming SocketOpened) initModel
                             in
-                            model.socket.isConnected
-                                |> Expect.true "Expected socket to be connected"
+                            model.socket.state
+                                |> Expect.equal Connected
                     ]
                 ]
             , describe "Outgoing" <|
