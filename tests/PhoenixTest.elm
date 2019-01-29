@@ -141,6 +141,29 @@ suite =
                                 _ ->
                                     Expect.fail "Expected channel to exist and have errored out"
                     ]
+                , describe "ChannelJoinTimeout"
+                    [ test "sets channel state to TimedOut" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelJoinTimeout defaultPayload)) modelWithChannel
+
+                                channel =
+                                    Dict.get defaultPayload.topic model.channels
+                            in
+                            case channel of
+                                Just ch ->
+                                    Expect.equal ch.state TimedOut
+
+                                _ ->
+                                    Expect.fail "Expected channel to exist and have timed out"
+                    ]
                 ]
             , describe "Outgoing" <|
                 let

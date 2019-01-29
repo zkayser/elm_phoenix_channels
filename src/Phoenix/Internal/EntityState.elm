@@ -6,3 +6,4 @@ type EntityState
     | Connected
     | Errored
     | Closed
+    | TimedOut
