@@ -125,11 +125,12 @@ update phoenixMessage model =
 
         Outgoing (CreateSocket newSocket) ->
             ( model, model.send { tag = "CreateSocket", data = Socket.encode newSocket } )
+
         Outgoing Disconnect ->
             ( model, model.send { tag = "Disconnect", data = Encode.null } )
 
-        _ ->
-            ( model, Cmd.none )
+        Outgoing (LeaveChannel channel) ->
+            ( model, model.send { tag = "LeaveChannel", data = Channel.encode channel } )
 
 
 maybeTriggerCommand : Maybe msg -> Cmd msg

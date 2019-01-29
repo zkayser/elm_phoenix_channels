@@ -21,6 +21,7 @@ module Phoenix.Channel exposing
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Json exposing (Value)
+import Phoenix.Internal.EntityState exposing (EntityState(..))
 import Phoenix.Payload exposing (Payload)
 import Task exposing (Task)
 
@@ -38,6 +39,7 @@ type alias Channel msg =
     , onLeave : Maybe (Value -> msg)
     , onLeaveError : Maybe (Value -> msg)
     , on : Dict String (Value -> msg)
+    , state : EntityState
     }
 
 
@@ -58,6 +60,7 @@ init topic =
     , onLeave = Nothing
     , onLeaveError = Nothing
     , on = Dict.empty
+    , state = Initializing
     }
 
 
