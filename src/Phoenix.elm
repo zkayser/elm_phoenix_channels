@@ -1,11 +1,11 @@
-module Phoenix exposing (Model, initialize, update, addChannel, addPush)
+module Phoenix exposing (Model, addChannel, addPush, initialize, update)
 
 import Dict exposing (Dict)
 import Json.Encode as Encode exposing (Value)
-import Phoenix.Channel exposing (Channel)
-import Phoenix.Message as Message exposing (Data, Event(..), Message(..))
+import Phoenix.Channel as Channel exposing (Channel)
+import Phoenix.Message as Message exposing (Data, Event(..), Message(..), PhoenixCommand(..))
 import Phoenix.Payload exposing (Payload)
-import Phoenix.Push exposing (Push)
+import Phoenix.Push as Push exposing (Push)
 import Phoenix.Socket as Socket exposing (Socket)
 import Task
 
@@ -26,9 +26,11 @@ initialize socket sendFn =
     , send = sendFn
     }
 
+
 addChannel : Channel msg -> Model msg -> Model msg
 addChannel channel model =
     { model | channels = Dict.insert channel.topic channel model.channels }
+
 
 addPush : Push msg -> Model msg -> Model msg
 addPush push model =
@@ -114,6 +116,15 @@ update phoenixMessage model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        Outgoing (CreateChannel channel) ->
+            ( { model | channels = Dict.insert channel.topic channel model.channels }
+            , model.send { tag = "CreateChannel", data = Channel.encode channel }
+            )
+        Outgoing (CreatePush push) ->
+            ( { model | pushes = Dict.insert push.topic push model.pushes }
+            , model.send { tag = "CreatePush", data = Push.encode push }
+            )
 
         _ ->
             ( model, Cmd.none )

@@ -23,8 +23,10 @@ suite =
                     let
                         model =
                             Phoenix.initialize (Socket.init "/socket") fakeSend
+
                         channel =
                             Channel.init "room:lobby"
+
                         newModel =
                             Phoenix.addChannel channel model
                     in
@@ -36,8 +38,10 @@ suite =
                     let
                         model =
                             Phoenix.initialize (Socket.init "/socket") fakeSend
+
                         push =
                             Push.init "room:lobby" "my_event"
+
                         newModel =
                             Phoenix.addPush push model
                     in
