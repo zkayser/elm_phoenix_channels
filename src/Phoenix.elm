@@ -124,7 +124,9 @@ update phoenixMessage model =
             ( addPush push model, model.send { tag = "CreatePush", data = Push.encode push } )
 
         Outgoing (CreateSocket newSocket) ->
-            ( model, model.send { tag = "CreateSocket", data = Socket.encode newSocket })
+            ( model, model.send { tag = "CreateSocket", data = Socket.encode newSocket } )
+        Outgoing Disconnect ->
+            ( model, model.send { tag = "Disconnect", data = Encode.null } )
 
         _ ->
             ( model, Cmd.none )
