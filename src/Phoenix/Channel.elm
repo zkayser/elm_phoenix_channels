@@ -1,10 +1,7 @@
 module Phoenix.Channel exposing
     ( Channel
     , init, withPayload, on
-    , command, encode
-    , closed
-    , errored
-    , joined
+    , closed, command, encode, errored, joined
     )
 
 {-| A channel declares a topic to be joined, registers event handlers for the topic, and has various callbacks for lifecycle events.
@@ -66,11 +63,13 @@ init topic =
     , state = Initializing
     }
 
+
 {-| Sets channel state to connected.
 -}
 joined : Channel msg -> Channel msg
 joined channel =
     { channel | state = Connected }
+
 
 {-| Sets channel state to errored.
 -}
@@ -78,11 +77,13 @@ errored : Channel msg -> Channel msg
 errored channel =
     { channel | state = Errored }
 
+
 {-| Sets channel state to closed.
 -}
 closed : Channel msg -> Channel msg
 closed channel =
     { channel | state = Closed }
+
 
 {-| Attaches a payload to the join message. This should be used to submit user IDs, authentication credentials, etc. The payload will
 be received as the second argument to the `join/3` callback on the server.

@@ -48,7 +48,11 @@ suite =
                     in
                     Expect.equal (Dict.get push.topic newModel.pushes) (Just push)
             ]
-        , describe "update"
+        , describe "update" <|
+            let
+                defaultPayload =
+                    { topic = "room:lobby", message = "some_message", payload = Encode.object [] }
+            in
             [ describe "Incoming" <|
                 let
                     initSocket =
@@ -90,6 +94,29 @@ suite =
                             in
                             model.socket.state
                                 |> Expect.equal Connected
+                    ]
+                , describe "ChannelJoined"
+                    [ test "sets channel state to connected" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelJoined defaultPayload)) modelWithChannel
+
+                                channel =
+                                    Dict.get defaultPayload.topic model.channels
+                            in
+                            case channel of
+                                Just ch ->
+                                    Expect.equal ch.state Connected
+
+                                _ ->
+                                    Expect.fail "Expected channel to exist and be connected"
                     ]
                 ]
             , describe "Outgoing" <|

@@ -56,7 +56,21 @@ update phoenixMessage model =
         Incoming (ChannelJoined payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( model, maybeTriggerCmdWithPayload channel.onJoin payload.payload )
+                    ( { model
+                        | channels =
+                            Dict.update channel.topic
+                                (\maybeChan ->
+                                    case maybeChan of
+                                        Just c ->
+                                            Just <| Channel.joined c
+
+                                        Nothing ->
+                                            Nothing
+                                )
+                                model.channels
+                      }
+                    , maybeTriggerCmdWithPayload channel.onJoin payload.payload
+                    )
 
                 _ ->
                     ( model, Cmd.none )
