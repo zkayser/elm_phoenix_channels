@@ -118,6 +118,29 @@ suite =
                                 _ ->
                                     Expect.fail "Expected channel to exist and be connected"
                     ]
+                , describe "ChannelJoinErrored"
+                    [ test "sets channel state to errored" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelJoinError defaultPayload)) modelWithChannel
+
+                                channel =
+                                    Dict.get defaultPayload.topic model.channels
+                            in
+                            case channel of
+                                Just ch ->
+                                    Expect.equal ch.state Errored
+
+                                _ ->
+                                    Expect.fail "Expected channel to exist and have errored out"
+                    ]
                 ]
             , describe "Outgoing" <|
                 let
