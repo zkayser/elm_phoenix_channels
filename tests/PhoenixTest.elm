@@ -202,6 +202,29 @@ suite =
                                 _ ->
                                     Expect.fail "Expected channel to exist and be closed"
                     ]
+                , describe "ChannelLeaveError"
+                    [ test "sets the channel state to LeaveErrored" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelLeaveError defaultPayload)) modelWithChannel
+
+                                channel =
+                                    Dict.get defaultPayload.topic model.channels
+                            in
+                            case channel of
+                                Just ch ->
+                                    Expect.equal ch.state LeaveErrored
+
+                                _ ->
+                                    Expect.fail "Expected channel to exist and be in a LeaveError state"
+                    ]
                 ]
             , describe "Outgoing" <|
                 let

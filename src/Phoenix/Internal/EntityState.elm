@@ -7,3 +7,4 @@ type EntityState
     | Errored
     | Closed
     | TimedOut
+    | LeaveErrored

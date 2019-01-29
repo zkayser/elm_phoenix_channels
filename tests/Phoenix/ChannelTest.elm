@@ -54,4 +54,13 @@ suite =
                     in
                     Expect.equal updatedChannel.state TimedOut
             ]
+        , describe "leaveErrored"
+            [ test "sets channel state to LeaveErrored" <|
+                \_ ->
+                    let
+                        updatedChannel =
+                            Channel.leaveErrored channel
+                    in
+                    Expect.equal updatedChannel.state LeaveErrored
+            ]
         ]

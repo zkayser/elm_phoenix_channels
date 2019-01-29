@@ -1,7 +1,7 @@
 module Phoenix.Channel exposing
     ( Channel
     , init, withPayload, on
-    , closed, command, encode, errored, joined, timedOut
+    , closed, command, encode, errored, joined, leaveErrored, timedOut
     )
 
 {-| A channel declares a topic to be joined, registers event handlers for the topic, and has various callbacks for lifecycle events.
@@ -90,6 +90,13 @@ closed channel =
 timedOut : Channel msg -> Channel msg
 timedOut channel =
     { channel | state = TimedOut }
+
+
+{-| Sets channel state to LeaveErrored.
+-}
+leaveErrored : Channel msg -> Channel msg
+leaveErrored channel =
+    { channel | state = LeaveErrored }
 
 
 {-| Attaches a payload to the join message. This should be used to submit user IDs, authentication credentials, etc. The payload will
