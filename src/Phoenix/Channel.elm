@@ -84,6 +84,7 @@ closed : Channel msg -> Channel msg
 closed channel =
     { channel | state = Closed }
 
+
 {-| Sets channel state to TimedOut.
 -}
 timedOut : Channel msg -> Channel msg

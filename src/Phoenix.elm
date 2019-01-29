@@ -107,11 +107,12 @@ update phoenixMessage model =
                                     case maybeChan of
                                         Just c ->
                                             Just <| Channel.timedOut c
+
                                         Nothing ->
                                             Nothing
                                 )
                                 model.channels
-                        }
+                      }
                     , maybeTriggerCommand channel.onJoinTimeout
                     )
 
@@ -129,7 +130,21 @@ update phoenixMessage model =
         Incoming (ChannelLeft payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( model, maybeTriggerCmdWithPayload channel.onLeave payload.payload )
+                    ( { model
+                        | channels =
+                            Dict.update channel.topic
+                                (\maybeChan ->
+                                    case maybeChan of
+                                        Just c ->
+                                            Just <| Channel.closed c
+
+                                        Nothing ->
+                                            Nothing
+                                )
+                                model.channels
+                      }
+                    , maybeTriggerCmdWithPayload channel.onLeave payload.payload
+                    )
 
                 _ ->
                     ( model, Cmd.none )

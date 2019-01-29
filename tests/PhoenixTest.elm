@@ -164,6 +164,44 @@ suite =
                                 _ ->
                                     Expect.fail "Expected channel to exist and have timed out"
                     ]
+                , describe "ChannelMessageReceive"
+                    [ test "is a no-op on the channel" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelMessageReceived defaultPayload)) modelWithChannel
+                            in
+                            Expect.equal modelWithChannel model
+                    ]
+                , describe "ChannelLeft"
+                    [ test "sets the channel state to Closed" <|
+                        \_ ->
+                            let
+                                initChannel =
+                                    Channel.init "room:lobby"
+
+                                modelWithChannel =
+                                    { initModel | channels = Dict.insert "room:lobby" initChannel initModel.channels }
+
+                                ( model, _ ) =
+                                    Phoenix.update (Incoming (ChannelLeft defaultPayload)) modelWithChannel
+
+                                channel =
+                                    Dict.get defaultPayload.topic model.channels
+                            in
+                            case channel of
+                                Just ch ->
+                                    Expect.equal ch.state Closed
+
+                                _ ->
+                                    Expect.fail "Expected channel to exist and be closed"
+                    ]
                 ]
             , describe "Outgoing" <|
                 let
