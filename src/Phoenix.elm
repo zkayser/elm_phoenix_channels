@@ -118,13 +118,13 @@ update phoenixMessage model =
                     ( model, Cmd.none )
 
         Outgoing (CreateChannel channel) ->
-            ( { model | channels = Dict.insert channel.topic channel model.channels }
-            , model.send { tag = "CreateChannel", data = Channel.encode channel }
-            )
+            ( addChannel channel model, model.send { tag = "CreateChannel", data = Channel.encode channel } )
+
         Outgoing (CreatePush push) ->
-            ( { model | pushes = Dict.insert push.topic push model.pushes }
-            , model.send { tag = "CreatePush", data = Push.encode push }
-            )
+            ( addPush push model, model.send { tag = "CreatePush", data = Push.encode push } )
+
+        Outgoing (CreateSocket newSocket) ->
+            ( model, model.send { tag = "CreateSocket", data = Socket.encode newSocket })
 
         _ ->
             ( model, Cmd.none )
