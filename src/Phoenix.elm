@@ -56,10 +56,7 @@ update phoenixMessage model =
         Incoming (ChannelJoined payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( { model
-                        | channels =
-                            Dict.update channel.topic (Maybe.map Channel.joined) model.channels
-                      }
+                    ( updateChannelWith Channel.joined channel.topic model
                     , maybeTriggerCmdWithPayload channel.onJoin payload.payload
                     )
 
@@ -69,10 +66,7 @@ update phoenixMessage model =
         Incoming (ChannelJoinError payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( { model
-                        | channels =
-                            Dict.update channel.topic (Maybe.map Channel.errored) model.channels
-                      }
+                    ( updateChannelWith Channel.errored channel.topic model
                     , maybeTriggerCmdWithPayload channel.onJoinError payload.payload
                     )
 
@@ -82,10 +76,7 @@ update phoenixMessage model =
         Incoming (ChannelJoinTimeout payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( { model
-                        | channels =
-                            Dict.update channel.topic (Maybe.map Channel.timedOut) model.channels
-                      }
+                    ( updateChannelWith Channel.timedOut channel.topic model
                     , maybeTriggerCommand channel.onJoinTimeout
                     )
 
@@ -103,10 +94,7 @@ update phoenixMessage model =
         Incoming (ChannelLeft payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( { model
-                        | channels =
-                            Dict.update channel.topic (Maybe.map Channel.closed) model.channels
-                      }
+                    ( updateChannelWith Channel.closed channel.topic model
                     , maybeTriggerCmdWithPayload channel.onLeave payload.payload
                     )
 
@@ -116,10 +104,7 @@ update phoenixMessage model =
         Incoming (ChannelLeaveError payload) ->
             case Dict.get payload.topic model.channels of
                 Just channel ->
-                    ( { model
-                        | channels =
-                            Dict.update channel.topic (Maybe.map Channel.leaveErrored) model.channels
-                      }
+                    ( updateChannelWith Channel.leaveErrored channel.topic model
                     , maybeTriggerCmdWithPayload channel.onLeaveError payload.payload
                     )
 
@@ -158,6 +143,7 @@ update phoenixMessage model =
             ( model, model.send { tag = "LeaveChannel", data = Channel.encode channel } )
 
 
+-- COMMAND HELPERS
 maybeTriggerCommand : Maybe msg -> Cmd msg
 maybeTriggerCommand maybeCallback =
     case maybeCallback of
@@ -176,3 +162,8 @@ maybeTriggerCmdWithPayload maybeCallback =
 
         Nothing ->
             \_ -> Cmd.none
+
+-- HELPERS
+updateChannelWith : (Channel msg -> Channel msg) -> String -> Model msg -> Model msg
+updateChannelWith channelFn topic model =
+    { model | channels = Dict.update topic (Maybe.map channelFn) model.channels }
