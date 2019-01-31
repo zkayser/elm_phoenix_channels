@@ -58,16 +58,7 @@ update phoenixMessage model =
                 Just channel ->
                     ( { model
                         | channels =
-                            Dict.update channel.topic
-                                (\maybeChan ->
-                                    case maybeChan of
-                                        Just c ->
-                                            Just <| Channel.joined c
-
-                                        Nothing ->
-                                            Nothing
-                                )
-                                model.channels
+                            Dict.update channel.topic (Maybe.map Channel.joined) model.channels
                       }
                     , maybeTriggerCmdWithPayload channel.onJoin payload.payload
                     )
@@ -80,16 +71,7 @@ update phoenixMessage model =
                 Just channel ->
                     ( { model
                         | channels =
-                            Dict.update channel.topic
-                                (\maybeChan ->
-                                    case maybeChan of
-                                        Just c ->
-                                            Just <| Channel.errored c
-
-                                        Nothing ->
-                                            Nothing
-                                )
-                                model.channels
+                            Dict.update channel.topic (Maybe.map Channel.errored) model.channels
                       }
                     , maybeTriggerCmdWithPayload channel.onJoinError payload.payload
                     )
@@ -102,16 +84,7 @@ update phoenixMessage model =
                 Just channel ->
                     ( { model
                         | channels =
-                            Dict.update channel.topic
-                                (\maybeChan ->
-                                    case maybeChan of
-                                        Just c ->
-                                            Just <| Channel.timedOut c
-
-                                        Nothing ->
-                                            Nothing
-                                )
-                                model.channels
+                            Dict.update channel.topic (Maybe.map Channel.timedOut) model.channels
                       }
                     , maybeTriggerCommand channel.onJoinTimeout
                     )
@@ -132,16 +105,7 @@ update phoenixMessage model =
                 Just channel ->
                     ( { model
                         | channels =
-                            Dict.update channel.topic
-                                (\maybeChan ->
-                                    case maybeChan of
-                                        Just c ->
-                                            Just <| Channel.closed c
-
-                                        Nothing ->
-                                            Nothing
-                                )
-                                model.channels
+                            Dict.update channel.topic (Maybe.map Channel.closed) model.channels
                       }
                     , maybeTriggerCmdWithPayload channel.onLeave payload.payload
                     )
@@ -154,16 +118,7 @@ update phoenixMessage model =
                 Just channel ->
                     ( { model
                         | channels =
-                            Dict.update channel.topic
-                                (\maybeChan ->
-                                    case maybeChan of
-                                        Just c ->
-                                            Just <| Channel.leaveErrored c
-
-                                        Nothing ->
-                                            Nothing
-                                )
-                                model.channels
+                            Dict.update channel.topic (Maybe.map Channel.leaveErrored) model.channels
                       }
                     , maybeTriggerCmdWithPayload channel.onLeaveError payload.payload
                     )
